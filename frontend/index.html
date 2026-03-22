@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASTraCore++ — Smart Code Analyzer</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-dim: #388bfd66;
+      --border: #30363d;
+      --success: #3fb950;
+      --radius: 10px;
+      --font: "Segoe UI", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: radial-gradient(ellipse 120% 80% at 50% -20%, #1c2d47, var(--bg));
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+
+    header {
+      margin-bottom: 1.75rem;
+    }
+
+    header h1 {
+      font-size: 1.65rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.35rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 720px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      padding: 0.85rem 1rem;
+      font-family: "Consolas", "Cascadia Code", monospace;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      resize: vertical;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .actions {
+      margin: 1.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.65rem 1.4rem;
+      color: #fff;
+      background: linear-gradient(180deg, #388bfd, #1f6feb);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #00000040;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .result {
+      padding: 1rem 1.25rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      min-height: 3.5rem;
+    }
+
+    .result h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+      font-weight: 600;
+    }
+
+    .score {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--success);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score.muted {
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    .err {
+      color: #f85149;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>ASTraCore++</h1>
+      <p>Smart code analyzer — compare two snippets for structural similarity.</p>
+    </header>
+
+    <div class="grid">
+      <div>
+        <label for="code1">Code A</label>
+        <textarea id="code1" placeholder="// Paste first program here&#10;int main() { return 0; }"></textarea>
+      </div>
+      <div>
+        <label for="code2">Code B</label>
+        <textarea id="code2" placeholder="// Paste second program here"></textarea>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="btnCompare">Compare</button>
+    </div>
+
+    <div class="result">
+      <h2>Similarity</h2>
+      <div id="score" class="score muted">—</div>
+      <div id="error" class="err" hidden></div>
+    </div>
+
+    <footer>ASTraCore++ · Flask backend · Jaccard + bigram on normalized tokens</footer>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>
