@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ASTraCore++ — Smart Code Analyzer</title>
+  <title>ASTraCore++ — Analysis &amp; Plagiarism Detection</title>
   <style>
     :root {
       --bg: #0f1419;
@@ -12,8 +12,12 @@
       --muted: #8b949e;
       --accent: #58a6ff;
       --accent-dim: #388bfd66;
+      --analyze-accent: #3fb950;
+      --analyze-dim: #3fb95033;
       --border: #30363d;
       --success: #3fb950;
+      --warn: #d29922;
+      --danger: #f85149;
       --radius: 10px;
       --font: "Segoe UI", system-ui, sans-serif;
     }
@@ -32,13 +36,13 @@
     }
 
     .wrap {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 2rem 1.25rem 3rem;
     }
 
     header {
-      margin-bottom: 1.75rem;
+      margin-bottom: 2rem;
     }
 
     header h1 {
@@ -54,14 +58,39 @@
       font-size: 0.95rem;
     }
 
-    .grid {
+    .section {
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-desc {
+      margin: 0 0 1.25rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
 
     @media (max-width: 720px) {
-      .grid {
+      .grid-2 {
         grid-template-columns: 1fr;
       }
     }
@@ -77,7 +106,7 @@
 
     textarea {
       width: 100%;
-      min-height: 220px;
+      min-height: 200px;
       padding: 0.85rem 1rem;
       font-family: "Consolas", "Cascadia Code", monospace;
       font-size: 0.85rem;
@@ -95,8 +124,13 @@
       box-shadow: 0 0 0 3px var(--accent-dim);
     }
 
+    #analysisCode:focus {
+      border-color: var(--analyze-accent);
+      box-shadow: 0 0 0 3px var(--analyze-dim);
+    }
+
     .actions {
-      margin: 1.25rem 0;
+      margin: 1rem 0 1.25rem;
       display: flex;
       align-items: center;
       gap: 1rem;
@@ -108,15 +142,26 @@
       font-size: 0.95rem;
       font-weight: 600;
       padding: 0.65rem 1.4rem;
-      color: #fff;
-      background: linear-gradient(180deg, #388bfd, #1f6feb);
       border: none;
       border-radius: 8px;
       cursor: pointer;
       box-shadow: 0 2px 8px #00000040;
+      color: #fff;
     }
 
-    button:hover {
+    .btn-analyze {
+      background: linear-gradient(180deg, #3fb950, #238636);
+    }
+
+    .btn-analyze:hover {
+      filter: brightness(1.08);
+    }
+
+    .btn-compare {
+      background: linear-gradient(180deg, #388bfd, #1f6feb);
+    }
+
+    .btn-compare:hover {
       filter: brightness(1.08);
     }
 
@@ -125,43 +170,157 @@
       cursor: not-allowed;
     }
 
-    .result {
+    .panel {
       padding: 1rem 1.25rem;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      min-height: 3.5rem;
     }
 
-    .result h2 {
+    .panel h3 {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
-      margin: 0 0 0.5rem;
+      margin: 0 0 0.65rem;
       font-weight: 600;
     }
 
-    .score {
+    .panel h3:not(:first-child) {
+      margin-top: 1.25rem;
+    }
+
+    .warn-list {
+      margin: 0;
+      padding-left: 1.25rem;
+      color: var(--text);
+    }
+
+    .warn-list li {
+      margin-bottom: 0.35rem;
+    }
+
+    .empty-hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .token-table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table.tokens {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Consolas", "Cascadia Code", monospace;
+      font-size: 0.8rem;
+    }
+
+    table.tokens th,
+    table.tokens td {
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    table.tokens th {
+      background: #0d1117;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+    }
+
+    table.tokens tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.tokens td:nth-child(3) {
+      word-break: break-all;
+    }
+
+    .similarity-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .score-big {
       font-size: 1.75rem;
       font-weight: 700;
       color: var(--success);
       font-variant-numeric: tabular-nums;
     }
 
-    .score.muted {
+    .score-big.muted {
       color: var(--muted);
       font-size: 1rem;
       font-weight: 400;
     }
 
+    .progress-track {
+      height: 10px;
+      background: #0d1117;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 0.75rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #238636, #3fb950);
+      transition: width 0.35s ease;
+    }
+
+    .progress-fill.mid {
+      background: linear-gradient(90deg, #9e6a03, #d29922);
+    }
+
+    .progress-fill.low {
+      background: linear-gradient(90deg, #6e7681, #8b949e);
+    }
+
+    .explanation {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin: 0 0 0.5rem;
+    }
+
+    .explanation.high {
+      color: #ff7b72;
+    }
+
+    .explanation.mid {
+      color: var(--warn);
+    }
+
+    .explanation.low {
+      color: var(--muted);
+    }
+
     .err {
-      color: #f85149;
+      color: var(--danger);
       font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .subpanel {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
     }
 
     footer {
-      margin-top: 2rem;
+      margin-top: 2.5rem;
       font-size: 0.8rem;
       color: var(--muted);
     }
@@ -171,31 +330,86 @@
   <div class="wrap">
     <header>
       <h1>ASTraCore++</h1>
-      <p>Smart code analyzer — compare two snippets for structural similarity.</p>
+      <p>Smart code analyzer and plagiarism detection — two modes, one tool.</p>
     </header>
 
-    <div class="grid">
-      <div>
-        <label for="code1">Code A</label>
-        <textarea id="code1" placeholder="// Paste first program here&#10;int main() { return 0; }"></textarea>
+    <!-- SECTION 1: Code Analysis -->
+    <section class="section" aria-labelledby="heading-analysis">
+      <h2 class="section-title" id="heading-analysis">Code Analysis (ASTraCore)</h2>
+      <p class="section-desc">Tokenize and lint a single snippet: warnings and token stream.</p>
+
+      <label for="analysisCode">Code A</label>
+      <textarea id="analysisCode" placeholder="// Paste code to analyze&#10;int main() { int x = 0; return x; }"></textarea>
+
+      <div class="actions">
+        <button type="button" class="btn-analyze" id="btnAnalyze">Analyze Code</button>
       </div>
-      <div>
-        <label for="code2">Code B</label>
-        <textarea id="code2" placeholder="// Paste second program here"></textarea>
+
+      <div class="panel" id="analysisOutput" hidden>
+        <div id="analysisError" class="err" hidden></div>
+        <h3>Warnings</h3>
+        <ul class="warn-list" id="analysisWarnings"></ul>
+        <p class="empty-hint" id="analysisWarningsEmpty" hidden>No warnings.</p>
+
+        <h3>Tokens</h3>
+        <div class="token-table-wrap">
+          <table class="tokens" id="analysisTokensTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Type</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="analysisTokensBody"></tbody>
+          </table>
+        </div>
+        <p class="empty-hint" id="analysisTokensEmpty" hidden>No tokens (empty input).</p>
       </div>
-    </div>
+    </section>
 
-    <div class="actions">
-      <button type="button" id="btnCompare">Compare</button>
-    </div>
+    <!-- SECTION 2: Plagiarism Detection -->
+    <section class="section" aria-labelledby="heading-plagiarism">
+      <h2 class="section-title" id="heading-plagiarism">Plagiarism Detection</h2>
+      <p class="section-desc">Compare two programs using normalized-token Jaccard and bigram similarity.</p>
 
-    <div class="result">
-      <h2>Similarity</h2>
-      <div id="score" class="score muted">—</div>
-      <div id="error" class="err" hidden></div>
-    </div>
+      <div class="grid-2">
+        <div>
+          <label for="compareCodeA">Code A</label>
+          <textarea id="compareCodeA" placeholder="// First program"></textarea>
+        </div>
+        <div>
+          <label for="compareCodeB">Code B</label>
+          <textarea id="compareCodeB" placeholder="// Second program"></textarea>
+        </div>
+      </div>
 
-    <footer>ASTraCore++ · Flask backend · Jaccard + bigram on normalized tokens</footer>
+      <div class="actions">
+        <button type="button" class="btn-compare" id="btnCompare">Compare</button>
+      </div>
+
+      <div class="panel" id="compareOutput" hidden>
+        <div id="compareError" class="err" hidden></div>
+
+        <div class="similarity-row">
+          <span class="score-big muted" id="compareScore">—</span>
+        </div>
+
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="compareProgressFill"></div>
+        </div>
+
+        <p class="explanation" id="compareExplanation"></p>
+
+        <div class="subpanel" id="compareCodeAWrap">
+          <h3>Code A — analysis warnings</h3>
+          <ul class="warn-list" id="compareCodeAWarnings"></ul>
+          <p class="empty-hint" id="compareCodeAWarningsEmpty" hidden>No warnings for Code A.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>ASTraCore++ · Flask · http://127.0.0.1:5000</footer>
   </div>
 
   <script src="/script.js"></script>
